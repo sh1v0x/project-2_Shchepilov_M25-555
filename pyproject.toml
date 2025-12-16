@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "project-2-shchepilov-m25-555"
+version = "0.1.0"
+description = ""
+authors = ["sh1v <sh1vvv@yandex.ru>"]
+readme = "README.md"
+
+packages = [
+    { include = "src" }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.12"
+prompt = "^0.4.1"
+
+[tool.poetry.scripts]
+project = "src.primitive_db.main:main"
+
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = [
+    "ruff (>=0.14.9,<0.15.0)"
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+exclude = ["venv", ".venv", "dist", "__pycache__"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = []
