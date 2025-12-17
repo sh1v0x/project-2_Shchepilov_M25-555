@@ -31,3 +31,7 @@
 
 ## Демонстрация работы
 [![asciinema](https://asciinema.org/a/72PlXwiGwSnwmvaFk3yEPCfIq.svg)](https://asciinema.org/a/72PlXwiGwSnwmvaFk3yEPCfIq)
+
+## Демонстрация CRUD-операций
+
+[![asciinema](https://asciinema.org/a/WXOGCMQnmGvAWe7ovP27EyLfa.svg)](https://asciinema.org/a/WXOGCMQnmGvAWe7ovP27EyLfa)
