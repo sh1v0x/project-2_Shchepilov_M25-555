@@ -49,7 +49,6 @@
 
 Также для ускорения повторяющихся запросов в `select` используется кэширование результатов на основе замыкания.
 
-## Демо (asciinema)
+## Демонстрация работы CLI (CRUD + декораторы):
 
-Скринкаст работы CLI (CRUD + декораторы):
-https://asciinema.org/a/gwaSaK0r6QGZ9sxYb90gxTpwo
+[![asciinema](https://asciinema.org/a/gwaSaK0r6QGZ9sxYb90gxTpwo.svg)](https://asciinema.org/a/gwaSaK0r6QGZ9sxYb90gxTpwo)
