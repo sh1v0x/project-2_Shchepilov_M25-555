@@ -1,10 +1,18 @@
 import time
-from functools import wraps
 from typing import Any, Callable
 
 
+def _wraps(original):
+    def decorator(wrapper):
+        wrapper.__name__ = original.__name__
+        wrapper.__doc__ = original.__doc__
+        wrapper.__module__ = original.__module__
+        return wrapper
+    return decorator
+
+
 def handle_db_errors(func):
-    @wraps(func)
+    @_wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
@@ -30,7 +38,7 @@ def handle_db_errors(func):
 
 def confirm_action(action_name: str):
     def decorator(func):
-        @wraps(func)
+        @_wraps(func)
         def wrapper(*args, **kwargs):
             answer = input(
                 f'Вы уверены, что хотите выполнить "{action_name}"? [y/n]: '
@@ -50,7 +58,7 @@ def confirm_action(action_name: str):
 
 
 def log_time(func):
-    @wraps(func)
+    @_wraps(func)
     def wrapper(*args, **kwargs):
         start = time.monotonic()
         result = func(*args, **kwargs)

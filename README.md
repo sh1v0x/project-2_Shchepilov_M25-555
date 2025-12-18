@@ -1,3 +1,23 @@
+## Описание проекта
+primitive_db — CLI-база данных на Python. Таблицы и данные хранятся в JSON-файлах (db_meta.json и data/*.json).
+Поддерживаются CRUD-операции, вывод через PrettyTable, декораторы для ошибок/подтверждений/тайминга, кэш select.
+
+## Установка
+
+```bash
+poetry install
+# или
+make install
+```
+
+## Запуск
+
+```bash
+poetry run database
+# или
+make run
+```
+
 ## Управление таблицами
 
 Программа предоставляет консольный интерфейс для управления таблицами базы данных.
@@ -52,3 +72,7 @@
 ## Демонстрация работы CLI (CRUD + декораторы):
 
 [![asciinema](https://asciinema.org/a/gwaSaK0r6QGZ9sxYb90gxTpwo.svg)](https://asciinema.org/a/gwaSaK0r6QGZ9sxYb90gxTpwo)
+
+## Итоговая демонстрация работы программы
+
+[![asciinema](    https://asciinema.org/a/QLYPeunPooDOF8ckBuqwvkV2F.svg)](    https://asciinema.org/a/QLYPeunPooDOF8ckBuqwvkV2F)

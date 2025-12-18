@@ -2,6 +2,7 @@ import shlex
 
 from prettytable import PrettyTable
 
+from .constants import META_FILE
 from .core import (
     _convert_value,
     create_table,
@@ -15,7 +16,6 @@ from .core import (
 )
 from .decorators import create_cacher
 from .utils import (
-    META_FILE,
     delete_table_data_file,
     load_metadata,
     load_table_data,
@@ -116,7 +116,22 @@ def parse_set_clause(text: str, metadata: dict, table_name: str) -> dict | None:
 
 
 def parse_where_clause(text: str, metadata: dict, table_name: str) -> dict | None:
-    parts = [p.strip() for p in text.split("and") if p.strip()]
+    # делаем разбиение по AND/and/And без regex
+    tokens = text.split()
+    parts: list[str] = []
+    buf: list[str] = []
+
+    for tok in tokens:
+        if tok.lower() == "and":
+            if buf:
+                parts.append(" ".join(buf).strip())
+                buf = []
+            continue
+        buf.append(tok)
+
+    if buf:
+        parts.append(" ".join(buf).strip())
+
     result: dict = {}
     for p in parts:
         one = parse_clause(p, metadata, table_name)
@@ -221,7 +236,9 @@ def run() -> None:
                 continue
 
             where_text = user_input[idx_where + len("where") :].strip()
-            where_clause = parse_clause(where_text, metadata, table_name)
+
+            # поддержка AND (несколько условий) для select
+            where_clause = parse_where_clause(where_text, metadata, table_name)
             if where_clause is None:
                 continue
 
@@ -230,8 +247,8 @@ def run() -> None:
             cache_key = (table_name, where_key)
 
             rows = _select_cache(
-                cache_key, 
-                lambda: select_rows(table_data, where_clause)
+                cache_key,
+                lambda: select_rows(table_data, where_clause),
             )
             _print_rows(rows)
             continue
@@ -279,7 +296,7 @@ def run() -> None:
                 continue
 
             where_text = user_input[idx_where + len("where") :].strip()
-            where_clause = parse_clause(where_text, metadata, table_name)
+            where_clause = parse_where_clause(where_text, metadata, table_name)
             if where_clause is None:
                 continue
 

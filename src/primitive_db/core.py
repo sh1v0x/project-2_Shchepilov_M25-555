@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
+from .constants import VALID_TYPES
 from .decorators import confirm_action, handle_db_errors, log_time
-
-VALID_TYPES = {"int", "str", "bool"}
 
 
 def _get_table(metadata: dict, table_name: str) -> dict | None:
@@ -105,38 +104,62 @@ def list_tables(metadata: dict) -> None:
         print(f"- {name}")
 
 
-def _convert_value(raw: str, type_name: str) -> Any:
-    text = str(raw).strip()
+def _convert_value(value: str, expected_type: str):
+    """
+    Convert string value to expected type.
+    """
+    value = value.strip()
 
-    if type_name == "int":
-        return int(text)
+    if expected_type == "int":
+        try:
+            return int(value)
+        except ValueError as exc:
+            raise ValueError(f"Expected int, got '{value}'") from exc
 
-    if type_name == "bool":
-        lowered = text.lower()
-        if lowered == "true":
+    if expected_type == "str":
+        if (
+            (value.startswith('"') and value.endswith('"'))
+            or (value.startswith("'") and value.endswith("'"))
+        ):
+            return value[1:-1]
+        return value
+
+    if expected_type == "bool":
+        if value.lower() in {"true", "1"}:
             return True
-        if lowered == "false":
+        if value.lower() in {"false", "0"}:
             return False
-        raise ValueError(f"Некорректное значение: {raw}. Используйте true/false.")
+        raise ValueError(f"Expected bool, got '{value}'")
 
-    if type_name == "str":
-        if len(text) >= 2 and text[0] == text[-1] and text[0] in ('"', "'"):
-            return text[1:-1]
-        raise ValueError(
-            f"Некорректное значение: {raw}."
-            "Строки должны быть в кавычках."
-        )
-
-    raise ValueError(f"Неизвестный тип: {type_name}")
+    raise ValueError(f"Unsupported type '{expected_type}'")
 
 
-    if type_name == "str":
-        if len(text) >= 2 and text[0] == text[-1] and text[0] in ('"', "'"):
-            return text[1:-1]
-        print(f"Некорректное значение: {raw}. Строки должны быть в кавычках.")
-        raise ValueError
-    
-    raise ValueError(f"Неизвестный тип: {type_name}")
+def _convert_value(value: str, expected_type: str):
+    value = value.strip()
+
+    if expected_type == "int":
+        try:
+            return int(value)
+        except ValueError as exc:
+            raise ValueError(f"Expected int, got '{value}'") from exc
+
+    if expected_type == "str":
+        if (
+            (value.startswith('"') and value.endswith('"'))
+            or (value.startswith("'") and value.endswith("'"))
+        ):
+            return value[1:-1]
+        return value
+
+    if expected_type == "bool":
+        low = value.lower()
+        if low in {"true", "1"}:
+            return True
+        if low in {"false", "0"}:
+            return False
+        raise ValueError(f"Expected bool, got '{value}'")
+
+    raise ValueError(f"Unsupported type '{expected_type}'")
 
 
 @log_time

@@ -1,10 +1,15 @@
 import json
-from pathlib import Path
-from typing import Any
+import os
 
-META_FILE = "db_meta.json"
-DATA_DIR = Path("data")
+from .constants import DATA_DIR
 
+ENCODING = "utf-8"
+JSON_INDENT = 2
+JSON_ENSURE_ASCII = False
+
+def _table_path(table_name: str) -> str:
+    os.makedirs(DATA_DIR, exist_ok=True)
+    return os.path.join(DATA_DIR, f"{table_name}.json")
 
 def load_metadata(filepath: str) -> dict:
     try:
@@ -21,9 +26,9 @@ def save_metadata(filepath: str, data: dict) -> None:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-def load_table_data(table_name: str) -> list[dict[str, Any]]:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    path = DATA_DIR / f"{table_name}.json"
+def load_table_data(table_name: str) -> list[dict[str, object]]:
+    os.makedirs(DATA_DIR, exist_ok=True)
+    path = _table_path(table_name)
 
     try:
         with open(path, "r", encoding="utf-8") as f:
@@ -35,15 +40,15 @@ def load_table_data(table_name: str) -> list[dict[str, Any]]:
         return []
 
 
-def save_table_data(table_name: str, data: list[dict[str, Any]]) -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    path = DATA_DIR / f"{table_name}.json"
+def save_table_data(table_name: str, data: list[dict[str, object]]) -> None:
+    os.makedirs(DATA_DIR, exist_ok=True)
+    path = _table_path(table_name)
 
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-        
+
 
 def delete_table_data_file(table_name: str) -> None:
-    path = DATA_DIR / f"{table_name}.json"
-    if path.exists():
-        path.unlink()
+    path = _table_path(table_name)
+    if os.path.exists(path):
+        os.remove(path)

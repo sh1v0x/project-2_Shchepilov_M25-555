@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "project-2-shchepilov-m25-555"
 version = "0.1.0"
-description = ""
+description = "CLI JSON database with CRUD operations, decorators and caching"
 authors = ["sh1v <sh1vvv@yandex.ru>"]
 readme = "README.md"
 
@@ -15,6 +15,7 @@ prompt = "^0.4.1"
 prettytable = "^3.17.0"
 
 [tool.poetry.scripts]
+project = "primitive_db.main:main"
 database = "primitive_db.main:main"
 
 
