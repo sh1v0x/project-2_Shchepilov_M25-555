@@ -116,7 +116,6 @@ def parse_set_clause(text: str, metadata: dict, table_name: str) -> dict | None:
 
 
 def parse_where_clause(text: str, metadata: dict, table_name: str) -> dict | None:
-    # делаем разбиение по AND/and/And без regex
     tokens = text.split()
     parts: list[str] = []
     buf: list[str] = []
@@ -242,7 +241,7 @@ def run() -> None:
             if where_clause is None:
                 continue
 
-            # ключ для кэша должен быть хешируемым → dict нельзя, делаем tuple
+            # ключ для кэша должен быть хешируемым
             where_key = tuple(sorted(where_clause.items()))
             cache_key = (table_name, where_key)
 

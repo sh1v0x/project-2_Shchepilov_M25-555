@@ -12,7 +12,6 @@ def _get_table(metadata: dict, table_name: str) -> dict | None:
         print(f'Ошибка: Таблица "{table_name}" не существует.')
         return None
 
-    # совместимость: если почему-то лежит список колонок, оборачиваем
     if isinstance(table, list):
         metadata[table_name] = {"columns": table}
         return metadata[table_name]
