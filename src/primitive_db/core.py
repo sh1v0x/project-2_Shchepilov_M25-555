@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
+from .decorators import handle_db_errors, confirm_action, log_time
+
+
 VALID_TYPES = {"int", "str", "bool"}
 
 
@@ -23,7 +26,6 @@ def _get_table(metadata: dict, table_name: str) -> dict | None:
     return table
 
 
-
 def _get_columns(metadata: dict, table_name: str) -> List[Dict[str, str]] | None:
     table = metadata.get(table_name)
     if table is None:
@@ -42,7 +44,7 @@ def _get_columns(metadata: dict, table_name: str) -> List[Dict[str, str]] | None
     return None
 
 
-
+@handle_db_errors
 def create_table(metadata: dict, table_name: str, columns: List[str]) -> dict:
     """Создать таблицу в метаданных.
 
@@ -80,6 +82,8 @@ def create_table(metadata: dict, table_name: str, columns: List[str]) -> dict:
     return metadata
 
 
+@handle_db_errors
+@confirm_action("удаление таблицы")
 def drop_table(metadata: dict, table_name: str) -> dict:
     """Удалить таблицу из метаданных."""
     if table_name not in metadata:
@@ -91,6 +95,7 @@ def drop_table(metadata: dict, table_name: str) -> dict:
     return metadata
 
 
+@handle_db_errors
 def list_tables(metadata: dict) -> None:
     """Вывести список всех таблиц."""
     if not metadata:
@@ -130,8 +135,12 @@ def _convert_value(raw: str, type_name: str) -> Any:
             return text[1:-1]
         print(f"Некорректное значение: {raw}. Строки должны быть в кавычках.")
         raise ValueError
+    
+    raise ValueError(f"Неизвестный тип: {type_name}")
 
 
+@handle_db_errors
+@log_time
 def insert_row(
     metadata: dict,
     table_name: str,
@@ -162,12 +171,9 @@ def insert_row(
 
     new_row: Dict[str, Any] = {"ID": new_id}
 
-    try:
-        for raw_value, col in zip(values, non_id_columns, strict=False):
-            new_row[col["name"]] = _convert_value(raw_value, col["type"])
-    except ValueError:
-        return table_data
-
+    for raw_value, col in zip(values, non_id_columns, strict=False):
+        new_row[col["name"]] = _convert_value(raw_value, col["type"])
+    
     table_data.append(new_row)
     print(f'Запись с ID={new_id} успешно добавлена в таблицу "{table_name}".')
 
@@ -182,6 +188,9 @@ def _row_matches(row: Dict[str, Any], where_clause: Dict[str, Any] | None) -> bo
             return False
     return True
 
+
+@handle_db_errors
+@log_time
 def select_rows(
     table_data: list[dict[str, Any]],
     where_clause: dict[str, Any] | None = None,
@@ -200,6 +209,9 @@ def select_rows(
             result.append(row)
     return result
 
+
+@handle_db_errors
+@confirm_action("удаление таблицы")
 def delete_rows(
     table_data: list[dict[str, Any]],
     where_clause: dict[str, Any],
@@ -220,6 +232,8 @@ def delete_rows(
 
     return new_data, deleted
 
+
+@handle_db_errors
 def update_rows(table_data: list[dict], set_clause: dict, where_clause: dict):
     """
     Обновляет строки по where_clause, применяя set_clause.
@@ -246,6 +260,7 @@ def update_rows(table_data: list[dict], set_clause: dict, where_clause: dict):
     return table_data, updated
 
 
+@handle_db_errors
 def table_info(metadata: dict, table_name: str, table_data: list[dict]):
     """
     Печатает информацию о таблице: имя, столбцы, количество записей.
