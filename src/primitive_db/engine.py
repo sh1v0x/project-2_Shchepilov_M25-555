@@ -13,6 +13,7 @@ from .core import (
     table_info,
     update_rows,
 )
+from .decorators import create_cacher
 from .utils import (
     META_FILE,
     delete_table_data_file,
@@ -21,6 +22,8 @@ from .utils import (
     save_metadata,
     save_table_data,
 )
+
+_select_cache = create_cacher()
 
 
 def print_help() -> None:
@@ -100,6 +103,7 @@ def parse_clause(text: str, metadata: dict, table_name: str) -> dict | None:
 
     return {col: value}
 
+
 def parse_set_clause(text: str, metadata: dict, table_name: str) -> dict | None:
     parts = [p.strip() for p in text.split(",") if p.strip()]
     result: dict = {}
@@ -171,6 +175,9 @@ def run() -> None:
             metadata = drop_table(metadata, table_name)
             save_metadata(META_FILE, metadata)
             delete_table_data_file(table_name)
+
+            _select_cache.clear()
+
             continue
 
         # insert into <table> values (...)
@@ -194,6 +201,9 @@ def run() -> None:
             table_data = load_table_data(table_name)
             table_data = insert_row(metadata, table_name, raw_values, table_data)
             save_table_data(table_name, table_data)
+
+            _select_cache.clear()
+
             continue
 
         # select from <table> [where col = value]
@@ -203,8 +213,11 @@ def run() -> None:
 
             lower_input = user_input.lower()
             idx_where = lower_input.find("where")
+
             if idx_where == -1:
-                _print_rows(select_rows(table_data))
+                cache_key = (table_name, None)
+                rows = _select_cache(cache_key, lambda: select_rows(table_data))
+                _print_rows(rows)
                 continue
 
             where_text = user_input[idx_where + len("where") :].strip()
@@ -212,8 +225,17 @@ def run() -> None:
             if where_clause is None:
                 continue
 
-            _print_rows(select_rows(table_data, where_clause))
+            # ключ для кэша должен быть хешируемым → dict нельзя, делаем tuple
+            where_key = tuple(sorted(where_clause.items()))
+            cache_key = (table_name, where_key)
+
+            rows = _select_cache(
+                cache_key, 
+                lambda: select_rows(table_data, where_clause)
+            )
+            _print_rows(rows)
             continue
+
 
         # update <table> set col = val where col = val
         if cmd == "update" and len(tokens) >= 2:
@@ -239,6 +261,8 @@ def run() -> None:
             table_data, updated = update_rows(table_data, set_clause, where_clause)
             save_table_data(table_name, table_data)
 
+            _select_cache.clear()
+
             if updated > 0:
                 print(f'Записи в таблице "{table_name}" успешно обновлены.')
             else:
@@ -262,6 +286,8 @@ def run() -> None:
             table_data = load_table_data(table_name)
             table_data, deleted = delete_rows(table_data, where_clause)
             save_table_data(table_name, table_data)
+
+            _select_cache.clear()
 
             if deleted > 0:
                 print(f'Записи успешно удалены из таблицы "{table_name}".')

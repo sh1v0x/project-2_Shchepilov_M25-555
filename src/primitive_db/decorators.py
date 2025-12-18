@@ -1,5 +1,6 @@
 import time
 from functools import wraps
+from typing import Any, Callable
 
 
 def handle_db_errors(func):
@@ -8,7 +9,10 @@ def handle_db_errors(func):
         try:
             return func(*args, **kwargs)
         except FileNotFoundError:
-            print("Ошибка: Файл данных не найден. Возможно, база данных не инициализирована.")
+            print(
+                "Ошибка: Файл данных не найден."
+                "Возможно, база данных не инициализирована."
+            )
         except KeyError as e:
             print(f"Ошибка: Таблица или столбец {e} не найден.")
         except ValueError as e:
@@ -44,6 +48,7 @@ def confirm_action(action_name: str):
         return wrapper
     return decorator
 
+
 def log_time(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -58,3 +63,20 @@ def log_time(func):
 
         return result
     return wrapper
+
+
+def create_cacher():
+    cache: dict[Any, Any] = {}
+
+    def cache_result(key: Any, value_func: Callable[[], Any]):
+        if key in cache:
+            return cache[key]
+        value = value_func()
+        cache[key] = value
+        return value
+
+    def clear():
+        cache.clear()
+
+    cache_result.clear = clear  # <- прикрепляем метод к функции
+    return cache_result

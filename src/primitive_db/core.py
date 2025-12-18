@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from .decorators import handle_db_errors, confirm_action, log_time
-
+from .decorators import confirm_action, handle_db_errors, log_time
 
 VALID_TYPES = {"int", "str", "bool"}
 
@@ -82,8 +81,8 @@ def create_table(metadata: dict, table_name: str, columns: List[str]) -> dict:
     return metadata
 
 
-@handle_db_errors
 @confirm_action("удаление таблицы")
+@handle_db_errors
 def drop_table(metadata: dict, table_name: str) -> dict:
     """Удалить таблицу из метаданных."""
     if table_name not in metadata:
@@ -107,18 +106,10 @@ def list_tables(metadata: dict) -> None:
 
 
 def _convert_value(raw: str, type_name: str) -> Any:
-    """Преобразовать строковое значение к нужному типу по схеме.
-
-    При ошибке выводит сообщение и выбрасывает ValueError.
-    """
     text = str(raw).strip()
 
     if type_name == "int":
-        try:
-            return int(text)
-        except ValueError:
-            print(f"Некорректное значение: {raw}. Попробуйте снова.")
-            raise
+        return int(text)
 
     if type_name == "bool":
         lowered = text.lower()
@@ -126,8 +117,17 @@ def _convert_value(raw: str, type_name: str) -> Any:
             return True
         if lowered == "false":
             return False
-        print(f"Некорректное значение: {raw}. Используйте true/false.")
-        raise ValueError
+        raise ValueError(f"Некорректное значение: {raw}. Используйте true/false.")
+
+    if type_name == "str":
+        if len(text) >= 2 and text[0] == text[-1] and text[0] in ('"', "'"):
+            return text[1:-1]
+        raise ValueError(
+            f"Некорректное значение: {raw}."
+            "Строки должны быть в кавычках."
+        )
+
+    raise ValueError(f"Неизвестный тип: {type_name}")
 
 
     if type_name == "str":
@@ -139,8 +139,8 @@ def _convert_value(raw: str, type_name: str) -> Any:
     raise ValueError(f"Неизвестный тип: {type_name}")
 
 
-@handle_db_errors
 @log_time
+@handle_db_errors
 def insert_row(
     metadata: dict,
     table_name: str,
@@ -189,8 +189,8 @@ def _row_matches(row: Dict[str, Any], where_clause: Dict[str, Any] | None) -> bo
     return True
 
 
-@handle_db_errors
 @log_time
+@handle_db_errors
 def select_rows(
     table_data: list[dict[str, Any]],
     where_clause: dict[str, Any] | None = None,
@@ -210,8 +210,8 @@ def select_rows(
     return result
 
 
+@confirm_action("удаление записей")
 @handle_db_errors
-@confirm_action("удаление таблицы")
 def delete_rows(
     table_data: list[dict[str, Any]],
     where_clause: dict[str, Any],

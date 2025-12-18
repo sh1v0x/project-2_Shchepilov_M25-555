@@ -6,7 +6,7 @@ authors = ["sh1v <sh1vvv@yandex.ru>"]
 readme = "README.md"
 
 packages = [
-    { include = "src" }
+    { include = "primitive_db", from = "src" }
 ]
 
 [tool.poetry.dependencies]
@@ -15,7 +15,7 @@ prompt = "^0.4.1"
 prettytable = "^3.17.0"
 
 [tool.poetry.scripts]
-database = "src.primitive_db.main:main"
+database = "primitive_db.main:main"
 
 
 [build-system]
